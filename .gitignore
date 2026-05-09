@@ -11,12 +11,14 @@ venv/
 .venv/
 env/
 .env/
+.pythonlibs/
 
 # Node
 node_modules/
 dist/
 build/
 .npm/
+.npm-cache/
 
 # IDE
 .vscode/

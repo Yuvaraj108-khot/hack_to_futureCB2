@@ -11,3 +11,4 @@ aiohttp
 sqlalchemy
 python-multipart
 groq
+yt-dlp

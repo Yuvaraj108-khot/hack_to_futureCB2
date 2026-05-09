@@ -3,7 +3,17 @@ import base64
 import io
 import tempfile
 import subprocess
-from groq import Groq
+import sys
+from pathlib import Path
+
+local_deps = Path(__file__).resolve().parents[1] / ".pythonlibs"
+if local_deps.exists():
+    sys.path.insert(0, str(local_deps))
+
+try:
+    from groq import Groq
+except ModuleNotFoundError:
+    Groq = None
 
 # Strict extraction prompt — NEVER evaluates truth, ONLY extracts the raw claim as stated
 _EXTRACT_SYSTEM = """You are a claim extraction tool. Your ONLY job is to rephrase the core news claim being made in the content into a short, neutral, declarative sentence.
@@ -32,7 +42,12 @@ STRICT RULES:
 
 class MediaService:
     def __init__(self):
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY")) if Groq else None
+
+    def _require_client(self):
+        if not self.client:
+            raise RuntimeError("The 'groq' package is not installed. Run: python -m pip install groq")
+        return self.client
 
     def _image_to_base64(self, file_bytes: bytes, mime_type: str) -> str:
         return base64.b64encode(file_bytes).decode("utf-8")
@@ -44,7 +59,8 @@ class MediaService:
         """
         b64 = self._image_to_base64(file_bytes, mime_type)
 
-        response = self.client.chat.completions.create(
+        client = self._require_client()
+        response = client.chat.completions.create(
             model="meta-llama/llama-4-scout-17b-16e-instruct",
             messages=[
                 {
@@ -71,7 +87,8 @@ class MediaService:
         Uses Groq Whisper to transcribe audio, then extracts the raw claim
         WITHOUT evaluating whether it is true or false.
         """
-        transcription = self.client.audio.transcriptions.create(
+        client = self._require_client()
+        transcription = client.audio.transcriptions.create(
             file=(filename, io.BytesIO(file_bytes)),
             model="whisper-large-v3",
             response_format="text",
@@ -79,7 +96,7 @@ class MediaService:
         )
         transcript_text = transcription if isinstance(transcription, str) else transcription.text
 
-        response = self.client.chat.completions.create(
+        response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": _EXTRACT_SYSTEM},
@@ -95,14 +112,15 @@ class MediaService:
         Transcribes video audio via Whisper, then extracts the raw claim.
         """
         try:
-            transcription = self.client.audio.transcriptions.create(
+            client = self._require_client()
+            transcription = client.audio.transcriptions.create(
                 file=(filename, io.BytesIO(file_bytes)),
                 model="whisper-large-v3",
                 response_format="text",
             )
             transcript_text = transcription if isinstance(transcription, str) else transcription.text
 
-            response = self.client.chat.completions.create(
+            response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": _EXTRACT_SYSTEM},
@@ -141,14 +159,15 @@ class MediaService:
             with open(audio_path, "rb") as f:
                 audio_bytes = f.read()
 
-        transcription = self.client.audio.transcriptions.create(
+        client = self._require_client()
+        transcription = client.audio.transcriptions.create(
             file=("audio.mp3", io.BytesIO(audio_bytes)),
             model="whisper-large-v3",
             response_format="text",
         )
         transcript_text = transcription if isinstance(transcription, str) else transcription.text
 
-        response = self.client.chat.completions.create(
+        response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": _EXTRACT_SYSTEM},
