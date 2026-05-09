@@ -33,7 +33,9 @@ app = FastAPI(title="VAULTX Intelligence API")
 # Configure CORS for Vite frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://hack-to-futurecb2-1.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
