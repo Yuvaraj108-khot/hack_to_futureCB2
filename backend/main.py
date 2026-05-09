@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+
 local_deps = Path(__file__).resolve().parent / ".pythonlibs"
 if local_deps.exists():
     sys.path.insert(0, str(local_deps))
@@ -32,14 +33,7 @@ app = FastAPI(title="VAULTX Intelligence API")
 # Configure CORS for Vite frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
-        "http://localhost:5176",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
