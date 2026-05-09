@@ -10,19 +10,28 @@ export const AdminCenter = () => {
   const [stats, setStats] = useState(null);
   const [latest, setLatest] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const statsRes = await axios.get('http://localhost:8000/api/stats');
-        setStats(statsRes.data);
-        const latestRes = await axios.get('http://localhost:8000/api/latest_claims');
-        setLatest(latestRes.data);
-      } catch (err) {
-        console.error("Stats fetch failed", err);
-      }
-    };
-    fetchData();
-  }, []);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const statsRes = await axios.get(
+        'https://hack-to-futurecb2-2.onrender.com/api/stats'
+      );
+
+      setStats(statsRes.data);
+
+      const latestRes = await axios.get(
+        'https://hack-to-futurecb2-2.onrender.com/api/latest_claims'
+      );
+
+      setLatest(latestRes.data);
+
+    } catch (err) {
+      console.error("Stats fetch failed", err);
+    }
+  };
+
+  fetchData();
+}, []);
 
   const mockTrendData = [
     { time: '00:00', surge: 12 },
