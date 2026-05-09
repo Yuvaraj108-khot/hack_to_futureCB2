@@ -143,7 +143,9 @@ class MediaService:
             audio_path = os.path.join(tmpdir, "audio.mp3")
 
             cmd = [
-                "yt-dlp",
+                sys.executable,
+                "-m",
+                "yt_dlp",
                 "--no-playlist",
                 "--extract-audio",
                 "--audio-format", "mp3",
@@ -152,7 +154,9 @@ class MediaService:
                 "-o", audio_path,
                 url,
             ]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(local_deps)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120, env=env)
             if result.returncode != 0:
                 raise RuntimeError(f"yt-dlp failed: {result.stderr[:300]}")
 

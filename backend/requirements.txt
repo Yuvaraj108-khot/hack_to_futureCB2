@@ -2,7 +2,6 @@ fastapi
 uvicorn
 openai
 tavily-python
-sentence-transformers
 indic-transliteration
 langdetect
 python-dotenv
